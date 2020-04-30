@@ -42,10 +42,10 @@ n_features = train_data.shape[1] - 1
 train_input = train_data.iloc[:, :n_features]
 train_target = train_data.iloc[:, n_features]
 
-# normalise training data by columns
-for column in train_input:
-    train_input[column] = train_input.loc[:, [column]].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
-    train_input[column] = train_input.loc[:, [column]].apply(lambda x: (x - x.mean()) / x.std())
+# # normalise training data by columns
+# for column in train_input:
+    # train_input[column] = train_input.loc[:, [column]].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
+    # train_input[column] = train_input.loc[:, [column]].apply(lambda x: (x - x.mean()) / x.std())
 
 # print(train_input)
 # print(train_target)
@@ -55,10 +55,10 @@ for column in train_input:
 test_input = test_data.iloc[:, :n_features]
 test_target = test_data.iloc[:, n_features]
 
-# normalise testing input data by columns
-for column in test_input:
-    test_input[column] = test_input.loc[:, [column]].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
-    test_input[column] = test_input.loc[:, [column]].apply(lambda x: (x - x.mean()) / x.std())
+# # normalise testing input data by columns
+# for column in test_input:
+    # test_input[column] = test_input.loc[:, [column]].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
+    # test_input[column] = test_input.loc[:, [column]].apply(lambda x: (x - x.mean()) / x.std())
 
 
 # create Tensors to hold inputs and outputs
@@ -69,23 +69,12 @@ Y = torch.Tensor(train_target).long()
 
 """
 Step 2: Define a neural network 
-
-Here we build a neural network with one hidden layer.
-    input layer: 9 neurons, representing the features of Glass
-    hidden layer: 10 neurons, using Sigmoid as activation function
-    output layer: 2 neurons, representing the type of glass
-
-The network will be trained with Stochastic Gradient Descent (SGD) as an
-optimiser, that will hold the current state and will update the parameters
-based on the computed gradients.
-
-Its performance will be evaluated using cross-entropy.
 """
 
 # define the number of inputs, classes, training epochs, and learning rate
 input_neurons = n_features
 learning_rate = 0.005
-num_epochs = 1000
+num_epochs = 500
 output_neurons = 2
 
 
@@ -107,9 +96,9 @@ class TwoLayerNet(torch.nn.Module):
         """
         # get hidden layer input
         h1_input = self.fc1(x)
-        h1_output = torch.sigmoid(h1_input)
+        h1_output = torch.tanh(h1_input)
         h2_input = self.fc2(h1_output)
-        h2_output = torch.relu(h2_input)
+        h2_output = torch.tanh(h2_input)
         y_pred = self.fc3(h2_output)
 
         return y_pred
@@ -120,9 +109,10 @@ net = TwoLayerNet()
 
 # define loss function
 loss_func = torch.nn.CrossEntropyLoss()
+# loss_func = torch.nn.MSELoss()
 
 # define optimiser
-optimiser = torch.optim.Adam(net.parameters(), lr=learning_rate)
+optimiser = torch.optim.Rprop(net.parameters(), lr=learning_rate)
 
 # store all losses for visualisation
 all_losses = []
