@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import time
 
 """
 Step 1: Load data and pre-process data
@@ -43,9 +45,9 @@ train_input = train_data.iloc[:, :n_features]
 train_target = train_data.iloc[:, n_features]
 
 # # normalise training data by columns
-# for column in train_input:
-    # train_input[column] = train_input.loc[:, [column]].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
-    # train_input[column] = train_input.loc[:, [column]].apply(lambda x: (x - x.mean()) / x.std())
+for column in train_input:
+    train_input[column] = train_input.loc[:, [column]].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
+#     train_input[column] = train_input.loc[:, [column]].apply(lambda x: (x - x.mean()) / x.std())
 
 # print(train_input)
 # print(train_target)
@@ -56,9 +58,9 @@ test_input = test_data.iloc[:, :n_features]
 test_target = test_data.iloc[:, n_features]
 
 # # normalise testing input data by columns
-# for column in test_input:
-    # test_input[column] = test_input.loc[:, [column]].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
-    # test_input[column] = test_input.loc[:, [column]].apply(lambda x: (x - x.mean()) / x.std())
+for column in test_input:
+    test_input[column] = test_input.loc[:, [column]].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
+#     test_input[column] = test_input.loc[:, [column]].apply(lambda x: (x - x.mean()) / x.std())
 
 
 # create Tensors to hold inputs and outputs
@@ -67,14 +69,19 @@ X = torch.Tensor(train_input.values).float()
 train_target = np.array(train_target).astype(np.uint8)
 Y = torch.Tensor(train_target).long()
 
+# create Tensors to hold inputs and outputs
+X_test = torch.Tensor(test_input.values).float()
+test_target = np.array(test_target).astype(np.uint8)
+Y_test = torch.Tensor(test_target).long()
+
 """
 Step 2: Define a neural network 
 """
 
 # define the number of inputs, classes, training epochs, and learning rate
 input_neurons = n_features
-learning_rate = 0.005
-num_epochs = 1000
+learning_rate = 0.001
+num_epochs = 200
 output_neurons = 2
 
 
@@ -142,10 +149,15 @@ loss_func = torch.nn.CrossEntropyLoss()
 
 # store all losses for visualisation
 all_losses = []
-
+all_acc = []
+all_acc.append([])
+all_acc.append([])
+all_acc.append([])
+all_acc.append([])
 # train a neural network
 evolve_time = 4
 for evolve in range(1, evolve_time):
+    start_time = time.time()
     if evolve == 1:
         net = TwoLayerNet(evolve)
     else:
@@ -161,7 +173,7 @@ for evolve in range(1, evolve_time):
     for epoch in range(num_epochs):
         # Perform forward pass: compute predicted y by passing x to the model.
         Y_pred = net(X)
-    
+        
         # Compute loss
         loss = loss_func(Y_pred, Y)
         all_losses.append(loss.item())
@@ -174,9 +186,26 @@ for evolve in range(1, evolve_time):
             # calculate and print accuracy
             total = predicted.size(0)
             correct = predicted.data.numpy() == Y.data.numpy()
-    
+
             print('Epoch [%d/%d] Loss: %.4f  Accuracy: %.2f %%'
                   % (epoch + 1, num_epochs, loss.item(), 100 * sum(correct) / total))
+
+            # test the neural network using testing data
+            # It is actually performing a forward pass computation of predicted y
+            # by passing x to the model.
+            # Here, Y_pred_test contains three columns, where the index of the
+            # max column indicates the class of the instance
+            Y_pred_test = net(X_test)
+
+            # get prediction
+            # convert three-column predicted Y values to one column for comparison
+            _, predicted_test = torch.max(Y_pred_test, 1)
+
+            # calculate accuracy
+            total_test = predicted_test.size(0)
+            correct_test = sum(predicted_test.data.numpy() == Y_test.data.numpy())
+            all_acc[int(epoch / 50)].append(100 * correct_test / total_test)
+            print('Testing Accuracy: %.2f %%' % (100 * correct_test / total_test))
     
         # Clear the gradients before running the backward pass.
         net.zero_grad()
@@ -187,6 +216,9 @@ for evolve in range(1, evolve_time):
         # Calling the step function on an Optimiser makes an update to its
         # parameters
         optimiser.step()
+
+    end_time = time.time()
+    print('Time cost: ' + str(end_time - start_time))
 
     confusion = torch.zeros(output_neurons, output_neurons)
 
@@ -209,11 +241,6 @@ for evolve in range(1, evolve_time):
     
     Pass testing data to the built neural network and get its performance
     """
-    
-    # create Tensors to hold inputs and outputs
-    X_test = torch.Tensor(test_input.values).float()
-    test_target = np.array(test_target).astype(np.uint8)
-    Y_test = torch.Tensor(test_target).long()
     
     # test the neural network using testing data
     # It is actually performing a forward pass computation of predicted y
@@ -252,15 +279,16 @@ for evolve in range(1, evolve_time):
     print('')
     print('Confusion matrix for testing:')
     print(confusion_test)
-# Optional: plotting historical loss from ``all_losses`` during network learning
-# Please uncomment me from next line to ``plt.show()`` if you want to plot loss
 
-import matplotlib.pyplot as plt
+print(all_acc)
 
 plt.figure()
+plt.plot(all_acc)
+plt.show()
 plt.plot(all_losses)
 plt.show()
-
+# Optional: plotting historical loss from ``all_losses`` during network learning
+# Please uncomment me from next line to ``plt.show()`` if you want to plot loss
 
 
 
