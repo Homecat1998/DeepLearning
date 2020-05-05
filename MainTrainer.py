@@ -8,6 +8,7 @@ http://archive.ics.uci.edu/ml/datasets/Glass+Identification
 import numpy as np
 import pandas as pd
 import torch
+import time
 import torch.nn.functional as F
 
 """
@@ -117,6 +118,7 @@ optimiser = torch.optim.Rprop(net.parameters(), lr=learning_rate)
 # store all losses for visualisation
 all_losses = []
 
+time_start = time.time()
 # train a neural network
 for epoch in range(num_epochs):
     # Perform forward pass: compute predicted y by passing x to the model.
@@ -147,6 +149,9 @@ for epoch in range(num_epochs):
     # Calling the step function on an Optimiser makes an update to its
     # parameters
     optimiser.step()
+time_end = time.time()
+
+print('Time cost: ' + str(time_end - time_start))
 
 # Optional: plotting historical loss from ``all_losses`` during network learning
 # Please uncomment me from next line to ``plt.show()`` if you want to plot loss

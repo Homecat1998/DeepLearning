@@ -154,6 +154,7 @@ all_acc.append([])
 all_acc.append([])
 all_acc.append([])
 all_acc.append([])
+all_acc.append([])
 # train a neural network
 evolve_time = 4
 for evolve in range(1, evolve_time):
@@ -170,7 +171,7 @@ for evolve in range(1, evolve_time):
     
     optimiser = torch.optim.Rprop(net.parameters(), lr=learning_rate)
     # training ===============================
-    for epoch in range(num_epochs):
+    for epoch in range(num_epochs + 1):
         # Perform forward pass: compute predicted y by passing x to the model.
         Y_pred = net(X)
         
