@@ -146,7 +146,7 @@ loss_func = torch.nn.CrossEntropyLoss()
 # loss_func = torch.nn.MSELoss()
 
 # define optimiser
-
+optimiser = torch.optim.Rprop(net.parameters(), lr=learning_rate)
 # store all losses for visualisation
 all_losses = []
 all_acc = []
@@ -169,7 +169,8 @@ for evolve in range(1, evolve_time):
         new_weight.update(pretrained_dict)
         net.load_state_dict(new_weight)
     
-    optimiser = torch.optim.Rprop(net.parameters(), lr=learning_rate)
+    # optimiser = torch.optim.Rprop(net.parameters(), lr=learning_rate)
+    optimiser = torch.optim.Adam(net.parameters(), lr = learning_rate, weight_decay= 0.01)
     # training ===============================
     for epoch in range(num_epochs + 1):
         # Perform forward pass: compute predicted y by passing x to the model.
@@ -182,6 +183,7 @@ for evolve in range(1, evolve_time):
         # print progress
         if epoch % 50 == 0:
             # convert three-column predicted Y values to one column for comparison
+            print(Y_pred)
             _, predicted = torch.max(Y_pred, 1)
     
             # calculate and print accuracy
